@@ -1,0 +1,19 @@
+{
+  "name": "sipmen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "pino": "^8.7.0",
+    "pino-pretty": "^9.1.1",
+    "puppeteer": "^19.4.0"
+  }
+}
