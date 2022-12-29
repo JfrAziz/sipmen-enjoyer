@@ -7,7 +7,7 @@ import * as control from "./control.js"
  * @param {*} page 
  */
 export const checkError = async (page) => {
-  const errorMessage = await page.$eval('div.alert', el => el.textContent)
+  const errorMessage = await page.$eval('div.alert-danger', el => el.textContent)
     .catch(() => false)
 
   if (errorMessage) throw Error(errorMessage.trim());
@@ -55,9 +55,9 @@ export const inputDistribution = async (browser, item) => {
 
   await page.goto(`${process.env.SIPMEN_URL}/alokasi-ke-koseka/tambah`);
 
-  await control.fillInput(page, "#no_surat", item.no_bast);
+  await control.fillInput(page, "#no_surat", item.bast_no);
 
-  await control.fillInput(page, "#tanggal_surat", item.tanggal);
+  await control.fillInput(page, "#tanggal_surat", item.date);
 
   await control.fillInput(page, "#kd_kab", item.kode_kabupaten);
 
@@ -73,9 +73,9 @@ export const inputDistribution = async (browser, item) => {
 
   await control.fillInput(page, "#nama_koseka", item.koseka_name);
 
-  await control.fillInput(page, "#pejabat_tt", item.pengirim);
+  await control.fillInput(page, "#pejabat_tt", item.sender);
 
-  await control.fillInput(page, "#nip_pejabat_tt", item.nip_pengirim);
+  await control.fillInput(page, "#nip_pejabat_tt", item.sender_nip);
 
   await Array(7).fill(1).reduce((p, spec) => p.then(() => page.click('button[onclick="add_baris()"]')), Promise.resolve(null));
 
@@ -101,8 +101,8 @@ export const inputDistribution = async (browser, item) => {
   await page.waitForNavigation();
 
   await checkError(page)
-    .then(() => logger.info(`[${item.kecamatan}] ${item.koseka_name}`))
-    .catch(error => logger.warn(`[${item.kecamatan}] ${item.koseka_name} ${error.message}`))
+    .then(() => logger.info(`[${item.kecamatan}] ${item.koseka_name} - Inserted`))
+    .catch(error => logger.error(`[${item.kecamatan}] ${item.koseka_name} - ${error.message}`))
 
   await page.close();
 }
