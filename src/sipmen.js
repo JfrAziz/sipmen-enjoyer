@@ -1,6 +1,10 @@
+import * as path from 'path'
 import logger from './logger.js';
+import puppeteer from 'puppeteer';
+import * as data from "./data.js";
 import * as utils from "./utils.js"
 import * as control from "./control.js"
+
 
 /**
  * 
@@ -47,6 +51,7 @@ export const login = async (browser) => {
 /**
  * 
  * @param {*} browser 
+ * @param {*} item 
  */
 export const inputDistribution = async (browser, item) => {
   logger.info(`[${item.kecamatan}] ${item.koseka_name}`)
@@ -107,3 +112,41 @@ export const inputDistribution = async (browser, item) => {
   await page.close();
 }
 
+/**
+ * 
+ * @param {*} browser 
+ */
+export const distribution = async (browser) => {
+  const distributionData = await data.fromCsv(path.join(process.cwd(), "data/distribusi.csv"));
+
+  logger.info(`${distributionData.length} distribution data loaded`);
+
+  logger.info(`Inserting ${distributionData.length} distribution data to SIPMEN...`);
+
+  await distributionData
+    .reduce((prev, item) => prev.then(() => inputDistribution(browser, item)), Promise.resolve(null));
+}
+
+
+/**
+ * launch sipmen browser
+ * 
+ * @param {*} callback 
+ */
+export const launch = async (callback) => {
+  logger.info('Launching Browser...')
+
+  const browser = await puppeteer.launch({ headless: process.env.HEADLESS.toLowerCase() === 'true' });
+
+  await login(browser).catch((error) => {
+    logger.error(error.message);
+
+    process.exit();
+  });
+
+  await callback(browser);
+
+  logger.info('Clossing Browser...')
+
+  await browser.close()
+};
