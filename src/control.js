@@ -13,3 +13,11 @@ export const fillInput = async (page, selector, value) => {
     ? await page.select(selector, value)
     : await page.type(selector, value)
 }
+
+export const uploadFile = async (page, selector, filePath) => {
+  await page.waitForSelector(selector);
+
+  const inputUploadHandle = await page.$(selector);
+
+  await inputUploadHandle.uploadFile(filePath)
+}
