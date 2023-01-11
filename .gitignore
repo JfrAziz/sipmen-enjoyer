@@ -5,3 +5,5 @@ node_modules
 output.log
 
 data/penerimaan/*.xlsx
+
+data/penerimaan-desa/*.xlsx
