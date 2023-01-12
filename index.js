@@ -34,7 +34,7 @@ yargs(process.argv.slice(2))
   .command('penerimaan', 'penerimaan dari koseka', async () => {
     await sipmen.launch(async (browser) => { await sipmen.penerimaan(browser) })
   })
-  .command('penerimaan-desa', 'penerimaan dari koseka', async () => {
+  .command('penerimaan-desa', 'penerimaan dari koseka input per desa', async () => {
     await sipmen.launch(async (browser) => { await sipmen.penerimaanPerDesa(browser) })
   })
   .command('batching', 'batching data', async () => {
