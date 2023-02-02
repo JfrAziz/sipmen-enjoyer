@@ -33,6 +33,14 @@ export const waitOptions = async (page, selector) => {
   }
 }
 
+/**
+ * 
+ * @param {*} page 
+ * @param {*} selector 
+ * @returns 
+ */
+export const checkChildsLength = async (page, selector) => (await page.$$(selector)).length;
+
 
 /**
  * 
@@ -381,8 +389,6 @@ export const penerimaanPerDesa = async (browser) => {
 }
 
 
-
-
 /**
  * 
  * @param {*} browser 
@@ -391,9 +397,13 @@ export const penerimaanPerDesa = async (browser) => {
 const inputBatching = async (browser, items) => {
   const page = await browser.newPage();
 
+  logger.info(`Create a new batching with id: ${items[0].id_batch}`)
+
   await page.setDefaultNavigationTimeout(0);
 
   await page.goto(`${process.env.SIPMEN_URL}/cetak-box/tambah-generate-box-kab`);
+
+  await control.fillInput(page, "#no_box_besar", items[0].id_batch)
 
   await utils.asyncForEach(items, async (item) => {
     await waitOptions(page, "#kd_kab option");
@@ -407,32 +417,49 @@ const inputBatching = async (browser, items) => {
     await waitOptions(page, "#kd_desa option");
 
     await control.fillInput(page, "#kd_desa", item.id_sls.slice(7, 10));
+
+    await waitOptions(page, "#kd_sls option");
+
+    await control.fillInput(page, "#kd_sls", item.id_sls.slice(10, 16));
+
+    const addButton = await page.$("button[name='add_wilayah']")
+
+    logger.info(`Add ${item.id_sls} to ${item.id_batch}`)
+
+    await addButton.click();
   })
+
+  const saveButton = await page.$("button[name='simpan']")
+
+  await saveButton.click();
+
+  const confirmButton = await page.$("button.swal2-confirm")
+
+  await confirmButton.click();
+
+  await page.waitForNavigation();
+
+  await checkError(page).catch(err => {
+    logger.warn(err.message)
+  })
+
+  await page.close()
 }
+
 
 /**
  * 
  * @param {*} browser 
  */
 export const batching = async (browser) => {
-  const data = [
-    {
-      'id_sls': "18050140010001",
-      'kode_batching': '18050001'
-    },
-    {
-      'id_sls': "18050140010002",
-      'kode_batching': '18050001'
-    }
-  ]
+  const datasources = await data.fromCsv(path.join(process.cwd(), "data/batching.csv"))
 
-  const kodeBatching = new Set(data.map(item => item.kode_batching));
+  const kodeBatching = [...new Set(datasources.map(item => item.id_batch))];
 
+  console.log(kodeBatching)
+  
   await kodeBatching
-    .reduce((prev, item) => prev.then(() => {
-      const filterdData = data.filter(sls => sls.kode_batching === item)
-      return inputBatching(browser, filterdData)
-    }), Promise.resolve(null))
+    .reduce((prev, item) => prev.then(() => inputBatching(browser, datasources.filter(sls => sls.id_batch === item))), Promise.resolve(null))
 }
 
 /**

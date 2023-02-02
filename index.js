@@ -1,8 +1,6 @@
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
 import * as sipmen from "./src/sipmen.js";
-import * as data from "./src/data.js"
-import * as path from 'path'
 
 
 /**
