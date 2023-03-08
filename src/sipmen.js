@@ -394,16 +394,14 @@ export const penerimaanPerDesa = async (browser) => {
  * @param {*} browser 
  * @param {*} items 
  */
-const inputBatching = async (browser, items) => {
+const inputBatching = async (browser, url, items) => {
   const page = await browser.newPage();
 
   logger.info(`Create a new batching with id: ${items[0].id_batch}`)
 
   await page.setDefaultNavigationTimeout(0);
 
-  await page.goto(`${process.env.SIPMEN_URL}/cetak-box/tambah-generate-box-kab`);
-
-  await control.fillInput(page, "#no_box_besar", items[0].id_batch)
+  await page.goto(url);
 
   await utils.asyncForEach(items, async (item) => {
     await waitOptions(page, "#kd_kab option");
@@ -428,6 +426,12 @@ const inputBatching = async (browser, items) => {
 
     await addButton.click();
   })
+
+  const input = await page.$('#no_box_besar');
+
+  await input.click({ clickCount: 3 })
+
+  await control.fillInput(page, "#no_box_besar", items[0].id_batch)
 
   const saveButton = await page.$("button[name='simpan']")
 
@@ -456,10 +460,76 @@ export const batching = async (browser) => {
 
   const kodeBatching = [...new Set(datasources.map(item => item.id_batch))];
 
-  console.log(kodeBatching)
-  
   await kodeBatching
-    .reduce((prev, item) => prev.then(() => inputBatching(browser, datasources.filter(sls => sls.id_batch === item))), Promise.resolve(null))
+    .reduce((prev, item) => prev.then(() => inputBatching(browser, `${process.env.SIPMEN_URL}/cetak-box/tambah-generate-box-kab`, datasources.filter(sls => sls.id_batch === item))), Promise.resolve(null))
+}
+
+/**
+ * 
+ * @param {*} browser 
+ */
+export const penyimpanan = async (browser) => {
+  const datasources = await data.fromCsv(path.join(process.cwd(), "data/penyimpanan.csv"))
+
+  const kodeBatching = [...new Set(datasources.map(item => item.id_batch))];
+
+  await kodeBatching
+    .reduce((prev, item) => prev.then(() => inputBatching(browser, `${process.env.SIPMEN_URL}/cetak-box/tambah-generate-box-simpan-kab`, datasources.filter(sls => sls.id_batch === item))), Promise.resolve(null))
+}
+
+/**
+ * 
+ * @param {*} browser 
+ * @param {*} items 
+ */
+const inputIpds = async (browser, items) => {
+  const page = await browser.newPage();
+
+  logger.info(`Send to IPDS to : ${items[0].petugas}`)
+
+  await page.setDefaultNavigationTimeout(0);
+
+  await page.goto(`${process.env.SIPMEN_URL}/sipmen-terima-kab-pengolahan/tambah-generate-box-kab`);
+
+  await utils.asyncForEach(items, async (item) => {
+    await waitOptions(page, "#kd_kab option");
+
+    await control.fillInput(page, "#kd_kab", "05");
+
+    await waitOptions(page, "#petugas option");
+
+    await control.fillInput(page, "#petugas", item.petugas);
+
+    await waitOptions(page, "#no_box_besar option");
+
+    await control.fillInput(page, "#no_box_besar", item.id_batch);
+
+    const addButton = await page.$("button[name='add_wilayah']")
+
+    logger.info(`Add batch ${item.id_batch} to ${item.petugas}`)
+
+    await addButton.click();
+  })
+
+  await utils.delay(2000)
+
+  const saveButton = await page.$("button#simpan1")
+
+  await saveButton.click();
+
+  // await page.waitForNavigation()
+
+  await page.close()
+}
+
+export const ipds = async (browser) => {
+  const datasources = await data.fromCsv(path.join(process.cwd(), "data/ipds.csv"))
+
+  const petugas = [...new Set(datasources.map(item => item.petugas))];
+
+  await petugas
+    .reduce((prev, item) => prev.then(() => inputIpds(browser, datasources.filter(batch => batch.petugas === item))), Promise.resolve(null))
+
 }
 
 /**

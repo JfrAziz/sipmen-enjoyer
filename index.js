@@ -38,5 +38,11 @@ yargs(process.argv.slice(2))
   .command('batching', 'batching data', async () => {
     await sipmen.launch(async (browser) => { await sipmen.batching(browser) })
   })
+  .command('ipds', 'penerimaan ipds', async () => {
+    await sipmen.launch(async (browser) => { await sipmen.ipds(browser) })
+  })
+  .command('penyimpanan', 'penyimpanan data', async () => {
+    await sipmen.launch(async (browser) => { await sipmen.penyimpanan(browser) })
+  })
   .help()
   .argv;
